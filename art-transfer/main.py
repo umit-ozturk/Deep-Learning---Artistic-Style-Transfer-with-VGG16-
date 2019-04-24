@@ -18,14 +18,21 @@ def main():
     content_image = get_content_image()
     content_array = get_image_array(content_image)
     content_image = backend.variable(content_array)
+    print("------ Content Image -----")
+    print(content_image)
 
     style_image = get_style_image()
     style_array = get_image_array(style_image)
     style_image = backend.variable(style_array)
+    print("------ Style Image -----")
+    print(style_image)
 
     input_tensor = get_input_tensor(content_image, style_image)
+    print("------ Input Tensor -----")
+    print(input_tensor)
 
     model = VGG16(input_tensor=input_tensor, weights='imagenet', include_top=False)
+    print(model.summary())
 
     layers = dict([layer.name, layer.output] for layer in model.layers)
 
@@ -67,8 +74,7 @@ def main():
         print('Current loss value:', min_val)
         end_time = time()
         print('Iteration %d completed in %ds' % (i, end_time - start_time))
-        imsave('results/' + str(i) + '.png', Image.fromarray(get_result_image(x)))
-    imsave('results/last.png', Image.fromarray(get_result_image(x)))
+    imsave('results/instance1.png', Image.fromarray(get_result_image(x)))
 
 
 if __name__ == '__main__':

@@ -28,17 +28,23 @@ class Evaluator(object):
 
 
 def get_content_image():
-	""" Acıklama gir """
+	"""
+	Giriş resmini döndüren fonksiyon.
+	"""
 	return Image.open(IMAGE_FILE).resize((width, height))
 
 
 def get_style_image():
-	""" Acıklama gir """
+	"""
+	Sanat eserini döndüren fonksiyon.
+	"""
 	return Image.open(STYLE_IMAGE_FILE).resize((width, height))
 
 
 def get_image_array(image):
-	""" Acıklama gir """
+	"""
+	Oluşturulması gereken resmin daha iyi sonuçlar vermesi için boyulara bu sabitler eklenir.
+	"""
 	image_array = np.asarray(image, dtype='float32')
 	image_array = np.expand_dims(image_array, axis=0)
 	image_array[:, :, :, 0] -= 103.939
@@ -49,12 +55,16 @@ def get_image_array(image):
 
 
 def get_input_tensor(content_image, style_image):
-	""" Acıklama gir """
+	"""
+	Giriş tensörünün tanımlandığı fonksiyon.
+	"""
 	return backend.concatenate([content_image, style_image, COMBINATION_IMAGE], axis=0)
 
 
 def get_result_image(x):
-	""" Acıklama gir """
+	"""
+	Oluşan resmin geri değerlerini geri getirir.
+	"""
 	x = x.reshape((height, width, 3))
 	x = x[:, :, ::-1]
 	x[:, :, 0] += 103.939
@@ -65,27 +75,38 @@ def get_result_image(x):
 
 
 def content_loss(content, combination):
-	""" Acıklama gir """
+	"""
+	Art transfer yapılacak resminin loss fonksiyonunu hesaplar.
+	"""
 	return backend.sum(backend.square(combination - content))
 
 
 def total_variation_loss(x):
-	""" Acıklama gir """
+	"""
+	Toplam loss fonksiyonunun sonucunu döndüren fonksiyon.
+	"""
 	a = backend.square(x[:, :height-1, :width-1, :] - x[:, 1:, :width-1, :])
 	b = backend.square(x[:, :height-1, :width-1, :] - x[:, :height-1, 1:, :])
 	return backend.sum(backend.pow(a + b, 1.25))
 
 
 def gram_matrix(x):
+	"""
+	Gram matris aslında bir stil katmanının öznitelik aktivasyonlarının vektörleri için sadece nokta
+	çarpımları matrisidir.
+	"""
 	features = backend.batch_flatten(backend.permute_dimensions(x, (2, 0, 1)))
 	gram = backend.dot(features, backend.transpose(features))
 	return gram
 
 
 def style_loss(style, combination):
+	"""
+	Sanat resminin loss fonksiyonunu hesaplar.
+	"""
 	s_gram = gram_matrix(style)
 	c_gram = gram_matrix(combination)
-	return backend.sum(backend.square(s_gram - c_gram)) / (4. * (CHANNELS ** 2) * (SIZE ** 2))
+	return backend.sum(backend.square(s_gram - c_gram)) / (4. * (3 ** 2) * (SIZE ** 2))
 
 
 def eval_loss_and_grads(x, f_outputs):
